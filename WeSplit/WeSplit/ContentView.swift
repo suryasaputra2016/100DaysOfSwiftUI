@@ -7,102 +7,78 @@
 
 import SwiftUI
 
-// structure that conforms to View protocol, is the initial view
 struct ContentView: View {
-    // state property which can be changed even though iside struct
-    @State private var tapCount = 0
+    @FocusState private var amountIsFocused: Bool
     
-    @State private var name = ""
+    @State private var checkAmount = 0.0
+    @State private var numberOfPeople = 2
+    @State private var tipPecentage = 20
     
-    let students = ["Harry", "Hermione", "Ron"]
-    @State private var selectedStudent = "Harry"
-    // creating discovery
-    // computed property of some type that conforms to view
+    var totalPerPerson: Double {
+        let peopleCount = Double(numberOfPeople + 2)
+        let tipSelection = Double(tipPecentage)
+        
+        let tipValue = checkAmount*tipSelection/100
+        let grandTotal = checkAmount + tipValue
+        let amountPerPerson = grandTotal / peopleCount
+        
+        return amountPerPerson
+    }
+    
+    let tipPercentages = [10, 15, 20, 25, 0]
+    
     var body: some View {
-        VStack {
-         /*
-        // text
-        Text("Hello, world!")
-            // modifier
-            .padding()
-        // form
-        Form{
-            Text("Hello, world!")
-            Text("Hello, world!")
-            // can contain up to 10 components
-        }
-        // to have more components we can chunck them into groups
-        Form {
-            Group {
-                Text("Hello, world!")
-                Text("Hello, world!")
-            }
-            Group {
-                Text("Hello, world!")
-                Text("Hello, world!")
-            }
-            // in thoeory works for any number of integer
-        }
-        
-        // form with section
-        Form {
-            Section {
-                Text("Hello, world!")
-                Text("Hello, world!")
-            }
-            Section {
-                Text("Hello, world!")
-                Text("Hello, world!")
-            }
-            // in thoeory works for any number of ingeter
-        }
-          */
-            
-        //navigation bar
         NavigationView {
             Form {
                 Section {
-                    Text("Hello, world!")
-                    Text("Hello, world!")
+                    TextField("Amount",
+                              value: $checkAmount,
+                              format: .currency(code: Locale.current.currencyCode ?? "USD"))
+                    .focused($amountIsFocused)
+                    .keyboardType(.decimalPad)
+                    
+                    Picker("Number of People", selection: $numberOfPeople) {
+                        ForEach(2..<100) {
+                            Text("\($0) people")
+                        }
+                    }
+                    
                 }
+                
                 Section {
-                    Text("Hello, world!")
+                    Picker("Tip Percentage", selection: $tipPecentage) {
+                        ForEach(tipPercentages, id: \.self) {
+                            Text($0, format: .percent)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                } header: {
+                    Text("How much tip do you want to leave?")
+                }
+                
+                Section {
+                    Text(totalPerPerson,
+                         format: .currency(code: Locale.current.currencyCode ??  "USD"))
                 }
             }
-            .navigationTitle("SwiftUI") //title of nav
-            .navigationBarTitleDisplayMode(.inline) //make nav title smaller
-        }
-        
-        // button that when tapped increment the tapCount above
-        Button("Tap Count: \(tapCount)") {
-            self.tapCount += 1
-        }
-         
-
-        //text field with binding to name
-        Form {
-            TextField("Enter your name", text: $name)
-            Text("Hello \(name)")
-        }
-        
-         // picker with options from array built with ForEach
-        NavigationView {
-            Form {
-                Picker("Select your student", selection: $selectedStudent) {
-                    ForEach(students, id: \.self) {
-                        Text($0)
+            .navigationTitle("WeSplit")
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    
+                    Button("Done") {
+                        amountIsFocused = false
                     }
                 }
             }
         }
-        
-        }
     }
+    
         
 }
 
 
-// the code below is just to show preview during development
+
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
