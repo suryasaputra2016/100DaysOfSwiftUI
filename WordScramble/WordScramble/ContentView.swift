@@ -16,6 +16,8 @@ struct ContentView: View {
     @State private var errorMessage = ""
     @State private var showingError = false
     
+    @State private var score = 0
+    
     func startGame() {
         if let startWordsURL = Bundle.main.url(forResource: "start", withExtension: "txt") {
             if let startWords = try? String(contentsOf: startWordsURL) {
@@ -32,7 +34,10 @@ struct ContentView: View {
     func addNewWord() {
         let answer = newWord.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         
-        guard answer.count > 0 else { return }
+        guard isLongEnough(word: answer) else {
+            wordError(title: "Word Too Short", message: "Enter a word containing 3 or more characters.")
+            return
+        }
         
         guard isOriginal(word: answer) else {
             wordError(title: "Word Used Already", message: "You've used that one, use new Word.")
@@ -40,14 +45,16 @@ struct ContentView: View {
         }
         
         guard isPossible(word: answer) else {
-            wordError(title: "Word not possible", message: "You can't spell that from \(rootWord).")
+            wordError(title: "Word Not Possible", message: "You can't spell that from \(rootWord).")
             return
         }
         
         guard isReal(word: answer) else {
-            wordError(title: "Word not recognized", message: "The word doesn't exist in the dictionary.")
+            wordError(title: "Word Not Recognized", message: "The word doesn't exist in the dictionary.")
             return
         }
+        
+        score += answer.count
         
         withAnimation {
             usedWords.insert(answer, at: 0)
@@ -80,6 +87,16 @@ struct ContentView: View {
         return misspelledRange.location == NSNotFound
     }
     
+    func isLongEnough(word: String) -> Bool {
+        return word.count > 2
+    }
+    
+    func resetGame() {
+        usedWords.removeAll()
+        score = 0
+        startGame()
+    }
+    
     func wordError(title: String, message: String) {
         errorTitle = title
         errorMessage = message
@@ -93,7 +110,11 @@ struct ContentView: View {
                     TextField("Enter your word", text: $newWord)
                         .textInputAutocapitalization(.never)
                 }
-                Section {
+                
+                Section("Score") {
+                    Text("Your score is \(score)")
+                }
+                Section("Used words") {
                     ForEach(usedWords, id: \.self) { word in
                         HStack {
                             Image(systemName: "\(word.count).circle")
@@ -109,6 +130,11 @@ struct ContentView: View {
                 Button("Ok", role: .cancel) { }
             } message: {
                 Text(errorMessage)
+            }
+            .toolbar {
+                Button("Reset game") {
+                    resetGame()
+                }
             }
         }
     }
