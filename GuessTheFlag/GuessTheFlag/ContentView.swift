@@ -19,6 +19,34 @@ struct flagImage: View {
     
 }
 
+/*
+// to be defined later,
+ // make conditional viewmodifier with extension
+ // use it in place of modifier on the chosen and unchosen flag
+ 
+ struct chosen: ViewModifier {
+    @State private var angle: Double
+    
+    func body(content: Content) -> some View {
+        content
+            .rotation3DEffect(Angle.degrees(angle), axis: (x: 0, y: 1, z: 0))
+    }
+}
+
+struct notChosen: ViewModifier {
+    @State private var opacity: Double
+    @State private var blurRadius: Double
+    
+    func body(content: Content) -> some View {
+        content
+            .opacity(opacity)
+            .blur(radius: blurRadius)
+    }
+}
+ */
+
+
+
 struct ContentView: View {
     @State private var countries = ["Estonia", "France", "Germany", "Ireland", "Italy", "Monaco", "Nigeria", "Poland", "Russia", "Spain", "UK", "US"].shuffled()
     @State private var correctAnswer = Int.random(in: 0...2)
@@ -28,6 +56,12 @@ struct ContentView: View {
     @State private var score = 0
     @State private var count = 1
     @State private var countDisplay = 1
+    
+    @State private var chosen = 0
+    
+    @State private var angle = 0.0
+    @State private var opacity = 1.0
+    @State private var blurRadius = 0.0
     
     let numberOfGame = 3
 
@@ -75,9 +109,17 @@ struct ContentView: View {
                         Button{
                             flagTapped(number)
                         } label: {
-                            flagImage(country: countries[number])
+                            if chosen == number {
+                                flagImage(country: countries[number])
+                                    .rotation3DEffect(Angle.degrees(angle), axis: (x: 0, y: 1, z: 0))
+                            } else {
+                                flagImage(country: countries[number])
+                                    .opacity(opacity)
+                                    .blur(radius: blurRadius)
+                            }
                         }
                     }
+                    
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 20)
@@ -112,6 +154,8 @@ struct ContentView: View {
     }
     
     func flagTapped(_ number: Int) {
+        chosen = number
+        
         if number == correctAnswer {
             scoreTitle = "Correct"
             score += 1
@@ -125,12 +169,21 @@ struct ContentView: View {
         } else {
             showingEndGame = true
         }
+        
+        withAnimation {
+            angle += 360.0
+            opacity = 0.25
+            blurRadius = 5.0
+        }
     }
     
     func askQuestion() {
         countDisplay += 1
         countries.shuffle()
         correctAnswer = Int.random(in: 0...2)
+        angle = 0.0
+        opacity = 1.0
+        blurRadius = 0.0
     }
     
     func reset() {
@@ -143,11 +196,14 @@ struct ContentView: View {
     
     
 }
+    
+
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
             .preferredColorScheme(.dark)
-            .previewDevice("iPhone 13")
+            .previewDevice("iPhone 1a3")
     }
 }
+
