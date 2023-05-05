@@ -90,3 +90,5 @@ var aString = "one"
 //aString = 1 //also error, you can't change string to integer
 
 //sometimes you'll see CGFloat instead of Double on some apple API, It's the old version of Double.
+
+// additional comment to check github connection fromo new macbook
